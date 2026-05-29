@@ -1,0 +1,9 @@
+export const USER_ROLES = ["ADMINISTRADOR", "RECEPCIONISTA", "REPARTIDOR"];
+export const ORDER_STATUSES = [
+    "SIN_ASIGNAR",
+    "POR_RECOGER",
+    "ENTREGANDO",
+    "ENTREGADO",
+    "CANCELADO",
+    "NO_SE_PUDO_ENTREGAR",
+];

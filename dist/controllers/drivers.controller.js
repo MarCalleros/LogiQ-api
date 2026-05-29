@@ -21,7 +21,12 @@ export async function createDriver(req, res) {
     res.status(201).json({ driver });
 }
 export async function updateDriver(req, res) {
-    const driver = await driversService.update(getIdParam(req), req.body, req.auth?.businessId);
+    const id = getIdParam(req);
+    if (req.auth?.role === "REPARTIDOR" && req.auth.sub !== id) {
+        res.status(403).json({ error: "No tienes permiso para actualizar a otro repartidor" });
+        return;
+    }
+    const driver = await driversService.update(id, req.body, req.auth?.businessId);
     res.json({ driver });
 }
 export async function deleteDriver(req, res) {

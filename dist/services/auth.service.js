@@ -110,9 +110,6 @@ export const authService = {
         if (!user) {
             throw new HttpError(401, "Correo o contrasena invalidos");
         }
-        if (user.role === "REPARTIDOR") {
-            throw new HttpError(403, "Por favor, utilice la aplicación móvil para iniciar sesión como repartidor.");
-        }
         if (!user.isActive) {
             if (user.role === "RECEPCIONISTA") {
                 throw new HttpError(403, "Su cuenta no está activa. Por favor, contacte con un administrador en caso de ser un error.");

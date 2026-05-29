@@ -17,6 +17,8 @@ const updateDriverSchema = z.object({
     localId: z.string().uuid().nullable().optional(),
     password: z.string().min(8).max(72).optional(),
     isActive: z.boolean().optional(),
+    posX: z.number().finite().nullable().optional(),
+    posY: z.number().finite().nullable().optional(),
 });
 function slugifyName(value) {
     const slug = value
@@ -174,6 +176,8 @@ export const driversService = {
                 localId: parsed.data.localId === null ? null : parsed.data.localId,
                 passwordHash,
                 isActive: parsed.data.isActive,
+                posX: parsed.data.posX,
+                posY: parsed.data.posY,
             },
             include: { local: true },
         });

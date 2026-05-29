@@ -47,7 +47,7 @@ export async function assignOrderDriver(req, res) {
     res.json({ order: updatedOrder });
 }
 export async function updateOrderStatus(req, res) {
-    const { status } = req.body;
+    const { status, failureReason } = req.body;
     if (!status || typeof status !== "string") {
         res.status(400).json({ error: "status es requerido y debe ser string" });
         return;
@@ -57,6 +57,6 @@ export async function updateOrderStatus(req, res) {
         res.status(403).json({ error: "No autorizado para cambiar estado de pedidos de otro local" });
         return;
     }
-    const updatedOrder = await ordersService.updateStatus(getIdParam(req), status, req.auth?.businessId);
+    const updatedOrder = await ordersService.updateStatus(getIdParam(req), status, req.auth?.businessId, failureReason);
     res.json({ order: updatedOrder });
 }

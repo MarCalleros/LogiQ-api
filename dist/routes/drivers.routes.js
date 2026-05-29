@@ -6,5 +6,5 @@ driversRouter.use(requireAuth);
 driversRouter.get("/", listDrivers);
 driversRouter.get("/:id", getDriver);
 driversRouter.post("/", requireRole("ADMINISTRADOR"), createDriver);
-driversRouter.patch("/:id", requireRole("ADMINISTRADOR"), updateDriver);
+driversRouter.patch("/:id", updateDriver);
 driversRouter.delete("/:id", requireRole("ADMINISTRADOR"), deleteDriver);
