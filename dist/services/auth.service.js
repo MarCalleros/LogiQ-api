@@ -23,6 +23,7 @@ function toSafeUser(user) {
         businessId: user.businessId,
         localId: user.localId,
         business: user.business,
+        needsPasswordReset: user.needsPasswordReset,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
     };
@@ -199,5 +200,40 @@ export const authService = {
             throw new HttpError(404, "Usuario no encontrado");
         }
         return toSafeUser(user);
+    },
+    async changePassword(userId, input) {
+        const parsed = z.object({ password: z.string().min(8).max(72) }).safeParse(input);
+        if (!parsed.success) {
+            throw new HttpError(400, "La contraseña debe tener entre 8 y 72 caracteres");
+        }
+        const passwordHash = await bcrypt.hash(parsed.data.password, 12);
+        const user = await prisma.user.update({
+            where: { id: userId },
+            data: {
+                passwordHash,
+                needsPasswordReset: false,
+                sessionVersion: {
+                    increment: 1,
+                },
+            },
+            include: {
+                business: true,
+            },
+        });
+        const safeUser = toSafeUser(user);
+        const accessToken = buildAccessToken({
+            sub: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            businessId: user.businessId,
+            localId: user.localId,
+            sessionVersion: user.sessionVersion,
+        });
+        return {
+            accessToken,
+            tokenType: "Bearer",
+            user: safeUser,
+        };
     },
 };

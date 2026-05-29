@@ -14,3 +14,11 @@ export async function getMe(req, res) {
     const user = await authService.me(payload.sub);
     res.json({ user });
 }
+export async function changePassword(req, res) {
+    if (!req.auth) {
+        res.status(401).json({ message: "No autenticado" });
+        return;
+    }
+    const result = await authService.changePassword(req.auth.sub, req.body);
+    res.json(result);
+}

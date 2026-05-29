@@ -125,6 +125,7 @@ export const receptionistsService = {
                     businessId,
                     localId: parsed.data.localId ?? null,
                     passwordHash,
+                    needsPasswordReset: true,
                     isDeleted: false,
                     deletedAt: null,
                 },
@@ -139,6 +140,7 @@ export const receptionistsService = {
                     businessId,
                     localId: parsed.data.localId ?? null,
                     passwordHash,
+                    needsPasswordReset: true,
                 },
                 include: { local: true },
             });
@@ -178,6 +180,7 @@ export const receptionistsService = {
                 businessId,
                 localId: parsed.data.localId === null ? null : parsed.data.localId,
                 passwordHash,
+                needsPasswordReset: passwordHash ? true : undefined,
                 isActive: parsed.data.isActive,
             },
             include: { local: true },
