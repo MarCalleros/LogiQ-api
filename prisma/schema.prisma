@@ -1,6 +1,5 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -59,6 +58,7 @@ model User {
   address      String?
   businessId   String?  @map("business_id") @db.Uuid
   localId      String?  @map("local_id") @db.Uuid
+  sessionVersion Int    @default(0) @map("session_version")
   passwordHash String   @map("password_hash")
   isActive     Boolean  @default(true) @map("is_active")
   isDeleted    Boolean  @default(false) @map("is_deleted")
