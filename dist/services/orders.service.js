@@ -46,6 +46,8 @@ function mapOrder(order, productPriceMap) {
         phone: order.phone,
         localId: order.localId,
         localName: order.local?.name ?? null,
+        localPosX: order.local?.posX ?? null,
+        localPosY: order.local?.posY ?? null,
         state: order.state,
         municipality: order.municipality,
         city: order.city,
