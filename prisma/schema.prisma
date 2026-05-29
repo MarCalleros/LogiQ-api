@@ -59,6 +59,7 @@ model User {
   businessId   String?  @map("business_id") @db.Uuid
   localId      String?  @map("local_id") @db.Uuid
   sessionVersion Int    @default(0) @map("session_version")
+  needsPasswordReset Boolean @default(false) @map("needs_password_reset")
   passwordHash String   @map("password_hash")
   isActive     Boolean  @default(true) @map("is_active")
   isDeleted    Boolean  @default(false) @map("is_deleted")
