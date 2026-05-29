@@ -6,6 +6,6 @@ const port = Number.parseInt(process.env.PORT ?? "3000", 10);
 const app = createApp();
 const server = createServer(app);
 initSocketServer(server);
-server.listen(port, () => {
+server.listen(port, "0.0.0.0", () => {
     console.log(`Backend running on port ${port}`);
 });
