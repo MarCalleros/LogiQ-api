@@ -7,13 +7,14 @@ export function requireAuth(req, _res, next) {
         return;
     }
     const token = authHeader.slice(7);
-    try {
-        req.auth = authService.verifyAccessToken(token);
+    void authService.verifyAccessToken(token)
+        .then((payload) => {
+        req.auth = payload;
         next();
-    }
-    catch (error) {
+    })
+        .catch((error) => {
         next(error);
-    }
+    });
 }
 export function requireRole(role) {
     return (req, _res, next) => {

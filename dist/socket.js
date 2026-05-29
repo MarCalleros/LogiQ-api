@@ -14,9 +14,9 @@ export function initSocketServer(server) {
         if (!token || typeof token !== "string") {
             return next(new Error("Authentication error: Token required"));
         }
-        try {
-            const cleanToken = token.startsWith("Bearer ") ? token.slice(7) : token;
-            const payload = authService.verifyAccessToken(cleanToken);
+        const cleanToken = token.startsWith("Bearer ") ? token.slice(7) : token;
+        void authService.verifyAccessToken(cleanToken)
+            .then((payload) => {
             socket.data = {
                 userId: payload.sub,
                 name: payload.name,
@@ -25,10 +25,10 @@ export function initSocketServer(server) {
                 localId: payload.localId,
             };
             next();
-        }
-        catch {
+        })
+            .catch(() => {
             next(new Error("Authentication error: Invalid or expired token"));
-        }
+        });
     });
     io.on("connection", (socket) => {
         const { userId, name, role, businessId, localId } = socket.data;

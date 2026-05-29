@@ -84,6 +84,7 @@ export const authService = {
             role: result.user.role,
             businessId: result.user.businessId,
             localId: result.user.localId,
+            sessionVersion: result.user.sessionVersion,
         });
         return {
             accessToken,
@@ -98,28 +99,41 @@ export const authService = {
             throw new HttpError(400, "Credenciales invalidas");
         }
         const email = parsed.data.email.toLowerCase();
-        const user = await prisma.user.findFirst({
-            where: {
-                email,
-                isDeleted: false,
-            },
-            include: {
-                business: true,
-            },
-        });
-        if (!user) {
-            throw new HttpError(401, "Correo o contrasena invalidos");
-        }
-        if (!user.isActive) {
-            if (user.role === "RECEPCIONISTA") {
-                throw new HttpError(403, "Su cuenta no está activa. Por favor, contacte con un administrador en caso de ser un error.");
+        const user = await prisma.$transaction(async (tx) => {
+            const foundUser = await tx.user.findFirst({
+                where: {
+                    email,
+                    isDeleted: false,
+                },
+                include: {
+                    business: true,
+                },
+            });
+            if (!foundUser) {
+                throw new HttpError(401, "Correo o contrasena invalidos");
             }
-            throw new HttpError(403, "Usuario inactivo");
-        }
-        const matches = await bcrypt.compare(parsed.data.password, user.passwordHash);
-        if (!matches) {
-            throw new HttpError(401, "Correo o contrasena invalidos");
-        }
+            if (!foundUser.isActive) {
+                if (foundUser.role === "RECEPCIONISTA") {
+                    throw new HttpError(403, "Su cuenta no está activa. Por favor, contacte con un administrador en caso de ser un error.");
+                }
+                throw new HttpError(403, "Usuario inactivo");
+            }
+            const matches = await bcrypt.compare(parsed.data.password, foundUser.passwordHash);
+            if (!matches) {
+                throw new HttpError(401, "Correo o contrasena invalidos");
+            }
+            return tx.user.update({
+                where: { id: foundUser.id },
+                data: {
+                    sessionVersion: {
+                        increment: 1,
+                    },
+                },
+                include: {
+                    business: true,
+                },
+            });
+        });
         const safeUser = toSafeUser(user);
         const accessToken = buildAccessToken({
             sub: user.id,
@@ -128,6 +142,7 @@ export const authService = {
             role: user.role,
             businessId: user.businessId,
             localId: user.localId,
+            sessionVersion: user.sessionVersion,
         }, parsed.data.remember ? "30d" : undefined);
         return {
             accessToken,
@@ -135,20 +150,36 @@ export const authService = {
             user: safeUser,
         };
     },
-    verifyAccessToken(token) {
+    async verifyAccessToken(token) {
         try {
             const payload = jwt.verify(token, getJwtSecret());
             if (typeof payload === "string") {
                 throw new HttpError(401, "Token invalido");
             }
-            return {
+            const normalizedPayload = {
                 sub: String(payload.sub),
                 email: String(payload.email),
                 role: payload.role,
                 name: String(payload.name),
                 businessId: typeof payload.businessId === "string" ? payload.businessId : null,
                 localId: typeof payload.localId === "string" ? payload.localId : null,
+                sessionVersion: typeof payload.sessionVersion === "number" ? payload.sessionVersion : Number(payload.sessionVersion),
             };
+            if (!Number.isInteger(normalizedPayload.sessionVersion)) {
+                throw new HttpError(401, "Token invalido");
+            }
+            const user = await prisma.user.findFirst({
+                where: {
+                    id: normalizedPayload.sub,
+                    email: normalizedPayload.email,
+                    isDeleted: false,
+                    sessionVersion: normalizedPayload.sessionVersion,
+                },
+            });
+            if (!user || !user.isActive) {
+                throw new HttpError(401, "Sesion iniciada en otro dispositivo");
+            }
+            return normalizedPayload;
         }
         catch {
             throw new HttpError(401, "Token invalido o expirado");

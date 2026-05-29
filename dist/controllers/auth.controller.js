@@ -10,7 +10,7 @@ export async function loginUser(req, res) {
 export async function getMe(req, res) {
     const authHeader = req.headers.authorization;
     const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : "";
-    const payload = authService.verifyAccessToken(token);
+    const payload = await authService.verifyAccessToken(token);
     const user = await authService.me(payload.sub);
     res.json({ user });
 }
