@@ -1,0 +1,152 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-amd64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMINISTRADOR
+  RECEPCIONISTA
+  REPARTIDOR
+}
+
+model Business {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  ownerUserId String   @unique @map("owner_user_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  ownerUser User   @relation("BusinessOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
+  users     User[] @relation("BusinessMembers")
+  locals    Local[]
+  products  Product[]
+  orders    Order[]
+
+  @@index([name])
+  @@map("businesses")
+}
+
+model Product {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  price       Float
+  description String
+  businessId  String?  @map("business_id") @db.Uuid
+  isActive    Boolean  @default(true) @map("is_active")
+  isDeleted   Boolean  @default(false) @map("is_deleted")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  business Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+
+  @@index([name, isDeleted])
+  @@index([businessId])
+  @@map("products")
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  email        String   @unique
+  role         UserRole @default(RECEPCIONISTA)
+  phone        String?
+  address      String?
+  businessId   String?  @map("business_id") @db.Uuid
+  localId      String?  @map("local_id") @db.Uuid
+  passwordHash String   @map("password_hash")
+  isActive     Boolean  @default(true) @map("is_active")
+  isDeleted    Boolean  @default(false) @map("is_deleted")
+  deletedAt    DateTime? @map("deleted_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  posX         Float?   @map("pos_x")
+  posY         Float?   @map("pos_y")
+
+  business      Business? @relation("BusinessMembers", fields: [businessId], references: [id], onDelete: SetNull)
+  ownedBusiness Business? @relation("BusinessOwner")
+  local Local? @relation(fields: [localId], references: [id], onDelete: SetNull)
+  driverOrders  Order[]   @relation("DriverOrders")
+
+  @@index([email, isDeleted])
+  @@index([role, isDeleted])
+  @@index([businessId])
+  @@index([localId])
+  @@map("users")
+}
+
+model Local {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  manager      String?  @map("manager_name")
+  phone        String?
+  businessId   String?  @map("business_id") @db.Uuid
+  state        String?
+  municipality String?
+  city         String?
+  postalCode   String?  @map("postal_code")
+  street       String?
+  posX         Float?   @map("pos_x")
+  posY         Float?   @map("pos_y")
+  isActive     Boolean  @default(true) @map("is_active")
+  isDeleted    Boolean  @default(false) @map("is_deleted")
+  deletedAt    DateTime? @map("deleted_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  business Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  users User[]
+  orders Order[]
+
+  @@index([name, isDeleted])
+  @@index([businessId])
+  @@map("locals")
+}
+
+enum OrderStatus {
+  SIN_ASIGNAR
+  POR_RECOGER
+  ENTREGANDO
+  ENTREGADO
+  CANCELADO
+  NO_SE_PUDO_ENTREGAR
+}
+
+model Order {
+  id              String      @id @default(uuid()) @db.Uuid
+  clientName      String      @map("client_name")
+  contactPerson   String?     @map("contact_person")
+  phone           String
+  localId         String      @map("local_id") @db.Uuid
+  state           String
+  municipality    String
+  city            String
+  postalCode      String      @map("postal_code")
+  street          String
+  additionalNotes String?     @map("additional_notes")
+  posX            Float       @map("pos_x")
+  posY            Float       @map("pos_y")
+  status          OrderStatus @default(SIN_ASIGNAR)
+  driverId        String?     @map("driver_id") @db.Uuid
+  businessId      String      @map("business_id") @db.Uuid
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  products        Json?       @default("[]")
+  failureReason   String?     @map("failure_reason")
+
+  local    Local    @relation(fields: [localId], references: [id], onDelete: Restrict)
+  driver   User?    @relation("DriverOrders", fields: [driverId], references: [id], onDelete: SetNull)
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([localId])
+  @@index([driverId])
+  @@index([businessId])
+  @@map("orders")
+}

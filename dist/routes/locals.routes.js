@@ -1,0 +1,10 @@
+import { Router } from "express";
+import { createLocal, deleteLocal, getLocal, listLocals, updateLocal } from "../controllers/locals.controller.js";
+import { requireAuth, requireRole } from "../middleware/auth.middleware.js";
+export const localsRouter = Router();
+localsRouter.use(requireAuth);
+localsRouter.get("/", listLocals);
+localsRouter.get("/:id", getLocal);
+localsRouter.post("/", requireRole("ADMINISTRADOR"), createLocal);
+localsRouter.patch("/:id", requireRole("ADMINISTRADOR"), updateLocal);
+localsRouter.delete("/:id", requireRole("ADMINISTRADOR"), deleteLocal);

@@ -1,0 +1,11 @@
+import { Router } from "express";
+import { createReceptionist, deleteReceptionist, getReceptionist, listReceptionists, updateReceptionist, } from "../controllers/receptionists.controller.js";
+import { requireAuth, requireRole } from "../middleware/auth.middleware.js";
+export const receptionistsRouter = Router();
+receptionistsRouter.use(requireAuth);
+receptionistsRouter.use(requireRole("ADMINISTRADOR"));
+receptionistsRouter.get("/", listReceptionists);
+receptionistsRouter.get("/:id", getReceptionist);
+receptionistsRouter.post("/", createReceptionist);
+receptionistsRouter.patch("/:id", updateReceptionist);
+receptionistsRouter.delete("/:id", deleteReceptionist);

@@ -1,0 +1,8 @@
+ALTER TABLE "locals"
+ADD COLUMN "state" TEXT,
+ADD COLUMN "municipality" TEXT,
+ADD COLUMN "city" TEXT,
+ADD COLUMN "postal_code" TEXT,
+ADD COLUMN "street" TEXT,
+ADD COLUMN "pos_x" DOUBLE PRECISION,
+ADD COLUMN "pos_y" DOUBLE PRECISION;

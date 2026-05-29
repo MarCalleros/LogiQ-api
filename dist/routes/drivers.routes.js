@@ -1,0 +1,10 @@
+import { Router } from "express";
+import { createDriver, deleteDriver, getDriver, listDrivers, updateDriver } from "../controllers/drivers.controller.js";
+import { requireAuth, requireRole } from "../middleware/auth.middleware.js";
+export const driversRouter = Router();
+driversRouter.use(requireAuth);
+driversRouter.get("/", listDrivers);
+driversRouter.get("/:id", getDriver);
+driversRouter.post("/", requireRole("ADMINISTRADOR"), createDriver);
+driversRouter.patch("/:id", requireRole("ADMINISTRADOR"), updateDriver);
+driversRouter.delete("/:id", requireRole("ADMINISTRADOR"), deleteDriver);

@@ -1,0 +1,10 @@
+import { Router } from "express";
+import { assignOrderDriver, createOrder, getOrder, listOrders, updateOrderStatus, } from "../controllers/orders.controller.js";
+import { requireAuth } from "../middleware/auth.middleware.js";
+export const ordersRouter = Router();
+ordersRouter.use(requireAuth);
+ordersRouter.get("/", listOrders);
+ordersRouter.get("/:id", getOrder);
+ordersRouter.post("/", createOrder);
+ordersRouter.patch("/:id/assign", assignOrderDriver);
+ordersRouter.patch("/:id/status", updateOrderStatus);
